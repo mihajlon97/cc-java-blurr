@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,8 +9,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.example.demo.model.Message;
 import com.example.demo.model.ParallelFJImageFilter;
+import com.example.demo.service.AWSService;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -23,8 +32,11 @@ import javax.imageio.ImageIO;
 @CrossOrigin
 public class MainController {
 
-	@RequestMapping(value = "/blur/{id}/{name}", method = RequestMethod.GET)
-	public Message mainWorldMessageEndpoint(@PathVariable String id, @PathVariable String name) throws IOException {
+	@Autowired
+	AWSService awsService;
+	
+	@GetMapping(value = "/blur/{id}/{name}")
+	public Message mainWorldMessageEndpoint(@PathVariable String id, @PathVariable String name) throws Exception {
 
 		BufferedImage image = null;
 		String srcFileName = null;
@@ -68,6 +80,9 @@ public class MainController {
 		String dstName = "Filtered-" + name;
 		File dstFile = new File(dstName);
 		ImageIO.write(dstImage, "jpg", dstFile);
+		
+		if(!awsService.checkIfS3BucketExists("blurring-images")) throw new Exception("Bucket with that name doesn't exist!");
+		awsService.putObjectToS3("blurring-images", "blurred-test1", dstFile);
 		
 		return new Message("URL:" + url, 1);
 	}
