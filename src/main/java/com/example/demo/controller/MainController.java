@@ -82,7 +82,7 @@ public class MainController {
 		ImageIO.write(dstImage, "jpg", dstFile);
 		
 		if(!awsService.checkIfS3BucketExists("blurring-images")) throw new Exception("Bucket with that name doesn't exist!");
-		awsService.putObjectToS3("blurring-images", "blurred-test1", dstFile);
+		awsService.putObjectToS3("blurring-images", "blurred-" + id + "/" + name, dstFile);
 		
 		return new Message("URL:" + url, 1);
 	}
