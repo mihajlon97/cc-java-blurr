@@ -14,8 +14,7 @@ public class RedisService {
             jedis = new Jedis(hostAndPort);
             jedis.publish(channel, msg);
         } catch (Exception ex) {
-            System.out.println("Jedis exception. " + ex.getMessage());
-            System.exit(1);
+            throw new RuntimeException("Jedis exception - " + ex.getMessage());
         } finally {
             if (jedis != null) jedis.close();
         }
