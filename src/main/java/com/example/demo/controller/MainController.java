@@ -1,7 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +22,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.example.demo.model.Message;
 import com.example.demo.model.ParallelFJImageFilter;
 import com.example.demo.service.AWSService;
+import redis.clients.jedis.HostAndPort;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -34,9 +38,24 @@ public class MainController {
 
 	@Autowired
 	AWSService awsService;
+
+	@Autowired
+	RedisService redisService;
+
+	private HostAndPort hostAndPort;
+
+	@GetMapping(value = "/hostAndPort/{host}/{port}")
+	public ResponseEntity hostAndPortInfo(@PathVariable String host, @PathVariable Integer port) {
+		if (host == null || port == null) {
+			return new ResponseEntity(HttpStatus.BAD_REQUEST);
+		}
+
+		hostAndPort = new HostAndPort(host, port);
+		return new ResponseEntity(HttpStatus.OK);
+	}
 	
 	@GetMapping(value = "/blur/{id}/{name}")
-	public Message mainWorldMessageEndpoint(@PathVariable String id, @PathVariable String name) throws Exception {
+	public ResponseEntity blurringImage(@PathVariable String id, @PathVariable String name) throws Exception {
 
 		BufferedImage image = null;
 		String srcFileName = null;
@@ -47,15 +66,15 @@ public class MainController {
 		}
 		catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("Usage: java TestAll <image-file>");
-			System.exit(1);
+			return new ResponseEntity(HttpStatus.BAD_REQUEST);
 		}
 		catch (IIOException e) {
 			System.out.println("Error reading image file " + srcFileName + " !");
-			System.exit(1);
+			return new ResponseEntity(HttpStatus.BAD_REQUEST);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			System.exit(1);
+			return new ResponseEntity(HttpStatus.BAD_REQUEST);
 		}
 
 		int w = image.getWidth();
@@ -74,6 +93,12 @@ public class MainController {
 		long tParallel = endTimePar - startTimePar; 
 		System.out.println("Parallel image filter took " + tParallel + " milliseconds using 4 threads.");
 
+		if (hostAndPort != null) {
+			redisService.connectAndPublish(hostAndPort, id, name);
+		} else {
+			return new ResponseEntity(HttpStatus.BAD_REQUEST);
+		}
+
 		BufferedImage dstImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		dstImage.setRGB(0, 0, w, h, dstPar, 0, w);
 		
@@ -83,8 +108,8 @@ public class MainController {
 		
 		if(!awsService.checkIfS3BucketExists("blurring-images")) throw new Exception("Bucket with that name doesn't exist!");
 		awsService.putObjectToS3("blurring-images", "blurred-" + id + "/" + name, dstFile);
-		
-		return new Message("URL:" + url, 1);
+
+		return new ResponseEntity(HttpStatus.OK);
 	}
 	
 } 
