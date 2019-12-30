@@ -3,30 +3,18 @@ package com.example.demo.controller;
 import com.example.demo.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.example.demo.model.Message;
 import com.example.demo.model.ParallelFJImageFilter;
 import com.example.demo.service.AWSService;
 import redis.clients.jedis.HostAndPort;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 
 import javax.imageio.IIOException;
@@ -61,7 +49,7 @@ public class MainController {
 		String srcFileName = null;
 		URL url = null;
 		try {
-            url = new URL("https://blurring-images.s3.eu-central-1.amazonaws.com/images-" + id + "/" + name);
+            url = new URL("https://blur-images.s3.us-east-1.amazonaws.com/images-" + id + "/" + name);
 			image = ImageIO.read(url);
 		}
 		catch (ArrayIndexOutOfBoundsException e) {
@@ -105,9 +93,9 @@ public class MainController {
 		String dstName = "Filtered-" + name;
 		File dstFile = new File(dstName);
 		ImageIO.write(dstImage, "jpg", dstFile);
-		
-		if(!awsService.checkIfS3BucketExists("blurring-images")) throw new Exception("Bucket with that name doesn't exist!");
-		awsService.putObjectToS3("blurring-images", "blurred-" + id + "/" + name, dstFile);
+
+		if(!awsService.checkIfS3BucketExists("blur-images")) throw new Exception("Bucket with that name doesn't exist!");
+		awsService.putObjectToS3("blur-images", "blurred-" + id + "/" + name, dstFile);
 
 		return new ResponseEntity(HttpStatus.OK);
 	}

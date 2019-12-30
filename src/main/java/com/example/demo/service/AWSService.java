@@ -12,8 +12,11 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.*;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AccessControlList;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
 @Service
@@ -29,7 +32,7 @@ public class AWSService {
 		s3Client = AmazonS3ClientBuilder
 				  .standard()
 				  .withCredentials(new AWSStaticCredentialsProvider(credentials))
-				  .withRegion(Regions.EU_CENTRAL_1)
+				  .withRegion(Regions.US_EAST_1)
 				  .build();
 	}
 	
@@ -42,6 +45,9 @@ public class AWSService {
 	}
 	
 	public void putObjectToS3(String s3BucketName, String objectKey, File file) {
-		s3Client.putObject(new PutObjectRequest(s3BucketName, objectKey, file));
+		
+		PutObjectRequest putObjectRequest = new PutObjectRequest(s3BucketName, objectKey, file);
+		putObjectRequest.setCannedAcl(CannedAccessControlList.PublicRead);	
+	    s3Client.putObject(putObjectRequest);		
 	}
 }
