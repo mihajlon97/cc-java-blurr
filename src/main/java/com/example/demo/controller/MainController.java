@@ -42,7 +42,7 @@ public class MainController {
 		String srcFileName = null;
 		URL url = null;
 		try {
-            url = new URL("https://blurring-images.s3.eu-central-1.amazonaws.com/images-" + id + "/" + name);
+            url = new URL("https://blur-images.s3.us-east-1.amazonaws.com/images-" + id + "/" + name);
 			image = ImageIO.read(url);
 		}
 		catch (ArrayIndexOutOfBoundsException e) {
@@ -81,8 +81,8 @@ public class MainController {
 		File dstFile = new File(dstName);
 		ImageIO.write(dstImage, "jpg", dstFile);
 		
-		if(!awsService.checkIfS3BucketExists("blurring-images")) throw new Exception("Bucket with that name doesn't exist!");
-		awsService.putObjectToS3("blurring-images", "blurred-" + id + "/" + name, dstFile);
+		if(!awsService.checkIfS3BucketExists("blur-images")) throw new Exception("Bucket with that name doesn't exist!");
+		awsService.putObjectToS3("blur-images", "blurred-" + id + "/" + name, dstFile);
 		
 		return new Message("URL:" + url, 1);
 	}
