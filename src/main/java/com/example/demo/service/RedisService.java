@@ -1,22 +1,42 @@
 package com.example.demo.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 
 @Service
+@PropertySource("classpath:application.properties")
 public class RedisService {
 
-    public void connectAndPublish(HostAndPort hostAndPort, String channel, String msg) {
-        Jedis jedis = null;
+    @Autowired
+    private AWSService awsService;
+
+    private Jedis jedis;
+
+    @Value("${redis.host}")
+    private String host;
+
+    @Value("${redis.port}")
+    private Integer port;
+
+    @Value("${redis.channel}")
+    private String channel;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void initializeJedis() {
+        System.out.println(host + ":" + port);
 
         try {
-            jedis = new Jedis(hostAndPort);
-            jedis.publish(channel, msg);
+            jedis = new Jedis(host, port);
+            jedis.subscribe(new JedisPubSubImpl(jedis, awsService), channel);
         } catch (Exception ex) {
-            throw new RuntimeException("Jedis exception - " + ex.getMessage());
-        } finally {
-            if (jedis != null) jedis.close();
+            System.out.println("Jedis initialization gone wrong. Details: " + ex.getMessage());
+            throw ex;
         }
+
     }
 }
