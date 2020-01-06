@@ -26,7 +26,7 @@ public class JedisPubSubImpl extends JedisPubSub {
     public void onMessage(String channel, String message) {
 
         System.out.println("Channel " + channel + " has sent a message : " + message );
-        String[] msg = message.split("[/]");
+        String[] msg = message.split("---");
         String id = msg[0];
         String name = msg[1];
 
