@@ -86,7 +86,7 @@ public class JedisPubSubImpl extends JedisPubSub {
         awsService.putObjectToS3("blur-images", "blurred-" + id + "/" + name, dstFile);
 
         // Sending info to the Redis
-        jedis.publish(channel, message);
+        // jedis.publish(channel, message);
     }
 
     @Override
