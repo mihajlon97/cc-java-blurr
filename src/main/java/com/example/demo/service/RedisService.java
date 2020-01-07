@@ -32,7 +32,7 @@ public class RedisService {
 
         try {
             jedis = new Jedis(host, port);
-            jedis.subscribe(new JedisPubSubImpl(jedis, awsService), channel);
+            jedis.subscribe(new JedisPubSubImpl(new Jedis(host, port), awsService), channel);
         } catch (Exception ex) {
             System.out.println("Jedis initialization gone wrong. Details: " + ex.getMessage());
             throw ex;

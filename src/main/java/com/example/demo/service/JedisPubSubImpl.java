@@ -13,11 +13,11 @@ import java.net.URL;
 
 public class JedisPubSubImpl extends JedisPubSub {
 
-    private Jedis jedis;
+    private Jedis publisher;
     private AWSService awsService;
 
-    public JedisPubSubImpl(Jedis jedis, AWSService awsService) {
-        this.jedis = jedis;
+    public JedisPubSubImpl(Jedis publisher, AWSService awsService) {
+        this.publisher = publisher;
         this.awsService = awsService;
     }
 
@@ -26,6 +26,8 @@ public class JedisPubSubImpl extends JedisPubSub {
     public void onMessage(String channel, String message) {
 
         System.out.println("Channel " + channel + " has sent a message : " + message );
+        Long result = publisher.publish("test", "testt");
+
         String[] msg = message.split("---");
         String id = msg[0];
         String name = msg[1];
@@ -86,7 +88,7 @@ public class JedisPubSubImpl extends JedisPubSub {
         awsService.putObjectToS3("blur-images", "blurred-" + id + "/" + name, dstFile);
 
         // Sending info to the Redis
-        // jedis.publish(channel, message);
+        // publisher.publish(channel, message);
     }
 
     @Override
